@@ -19,12 +19,18 @@ module.exports = {
 		variables.push({ variableId: 'movestatus_zoom', name: 'Move Status Zoom' })
 		variables.push({ variableId: 'error_state', name: 'Error State' })
 		variables.push({ variableId: 'utc_time', name: 'UTC Time' })
+		variables.push({ variableId: 'presets', name: 'Preset Names' })
 
 		//Preset Information
 		if (self.CHOICES_PRESETS.length > 0 && self.CHOICES_PRESETS[0].id !== 0) {
 			//only add presets if they exist
 			for (let i = 0; i < self.CHOICES_PRESETS.length; i++) {
-				variables.push({ variableId: `preset_${i + 1}`, name: `Preset ${i + 1} Name` })
+				variables.push(
+					{
+						variableId: `preset_${self.CHOICES_PRESETS[i].index}`,
+						name: `Preset ${self.CHOICES_PRESETS[i].index} Name`
+					}
+				)
 			}
 		}
 
@@ -53,8 +59,17 @@ module.exports = {
 
 			if (self.CHOICES_PRESETS.length > 0 && self.CHOICES_PRESETS[0].id !== 0) {
 				//only add presets if they exist
-				for (let i = 0; i < self.CHOICES_PRESETS.length; i++) {
-					variableValues[`preset_${i + 1}`] = self.CHOICES_PRESETS[i].label || ''
+				variableValues.presets = self.CHOICES_PRESETS.reduce((str, preset) => {
+					return str ? str + "," + preset.label : preset.label;
+				}, "")
+				
+				for (let i = 0; i < Math.max(...self.CHOICES_PRESETS.map(o => o.index)); i++) {  //(let i = 0; i < self.CHOICES_PRESETS.length; i++)
+					try {
+						variableValues[`preset_${self.CHOICES_PRESETS[i].index}`] = self.CHOICES_PRESETS[i].label || ''  //i + 1
+					}
+					catch {TypeError} {
+						continue
+					}
 				}
 			}
 

@@ -769,42 +769,177 @@ module.exports = {
 			},
 		}
 
+		actions.getPresets = {
+			name: 'Get Presets',
+			callback: async () => {
+				self.getPresets()
+			},
+		},
+
 		actions.recallPreset = {
 			name: 'Recall Preset',
 			options: [
+				{
+					id: 'byIndex',
+					type: 'checkbox',
+					label: 'Recall preset by index',
+					default: false
+				},
 				{
 					type: 'dropdown',
 					label: 'Preset',
 					id: 'preset',
 					default: self.CHOICES_PRESETS[0].id,
 					choices: self.CHOICES_PRESETS,
+					isVisible: (options) => !options.byIndex,
 				},
+				{
+					type: 'number',
+					label: 'Preset',
+					id: 'presetIndex',
+					default: 1,
+					min: 1,
+					isVisible: (options) => !!options.byIndex,
+				}
 			],
 			callback: async function (action) {
 				let opt = action.options
 
 				let options = {
-					preset: opt.preset,
+					preset: (!opt.byIndex)
+						? opt.preset
+						: self.CHOICES_PRESETS.find(token => token.index === opt.presetIndex).id
 				}
 
 				self.gotoPreset(options)
 			},
 		}
-		;(actions.setPreset = {
+		
+		actions.setPreset = {
 			name: 'Set Preset',
 			options: [
+				{
+					id: 'byIndex',
+					type: 'checkbox',
+					label: 'Set preset by index',
+					default: false
+				},
 				{
 					type: 'dropdown',
 					label: 'Preset',
 					id: 'preset',
 					default: self.CHOICES_PRESETS[0].id,
 					choices: self.CHOICES_PRESETS,
+					isVisible: (options) => !options.byIndex,
 				},
+				{
+					type: 'number',
+					label: 'Preset',
+					id: 'presetIndex',
+					default: 1,
+					min: 1,
+					isVisible: (options) => !!options.byIndex,
+				},
+			],
+			callback: async function (action, context) {
+				let opt = action.options
+
+				if (!!opt.byIndex){
+					existingPreset = self.CHOICES_PRESETS.find(token => token.index === opt.presetIndex)  //Returns object or undefined
+					if (existingPreset != undefined){
+						opt.preset = existingPreset.id
+					} else {
+						opt.preset = ''
+					}
+				}
+
+				options = {
+					presetToken: opt.preset,
+					presetName: (!opt.byIndex)
+						? self.CHOICES_PRESETS.find(token => token.id === opt.preset).label
+						: self.CHOICES_PRESETS.find(token => token.index === opt.presetIndex).label
+				}
+
+				self.setPreset(options)
+			},
+		}
+
+		actions.addPreset = {
+			name: 'Add Preset',
+			options: [
 				{
 					type: 'textinput',
 					label: 'Preset Name',
-					id: 'presetName',
+					id: 'presetNameVars',
 					default: '',
+					useVariables: {
+						local: true,
+					},
+					required: true,
+				},
+			],
+			callback: async function (action, context) {
+				let opt = action.options
+				let presetName = await context.parseVariablesInString(opt.presetNameVars)
+
+				let options = {
+					presetName: presetName
+				}
+
+				self.setPreset(options)
+			},
+		}
+		
+		actions.deletePreset = {
+			name: 'Delete Preset',
+			options: [
+				{
+					id: 'byIndex',
+					type: 'checkbox',
+					label: 'Delete preset by index',
+					default: false
+				},
+				{
+					type: 'dropdown',
+					label: 'Preset',
+					id: 'preset',
+					default: self.CHOICES_PRESETS[0].id,
+					choices: self.CHOICES_PRESETS,
+					isVisible: (options) => !options.byIndex,
+				},
+				{
+					type: 'number',
+					label: 'Preset',
+					id: 'presetIndex',
+					default: 1,
+					min: 1,
+					isVisible: (options) => !!options.byIndex,
+				}
+			],
+			callback: async function (action) {
+				let opt = action.options
+
+				let options = {
+					presetToken: (!opt.byIndex)
+						? opt.preset
+						: self.CHOICES_PRESETS.find(token => token.index === opt.presetIndex).id
+				}
+				
+				self.removePreset(options)
+			},
+		}
+
+		//Imaging Functions
+		actions.setBrightness = {
+			name: 'Set Brightness',
+			options: [
+				{
+					type: 'number',
+					label: 'Brightness',
+					id: 'brightness',
+					default: 50,
+					min: 0,
+					max: 100,
 					required: true,
 				},
 			],
@@ -812,38 +947,12 @@ module.exports = {
 				let opt = action.options
 
 				let options = {
-					presetToken: opt.preset,
-					presetName: opt.presetName,
+					brightness: opt.brightness,
 				}
 
-				self.setPreset(options)
+				self.setImaging(options)
 			},
-		}),
-			//Imaging Functions
-
-			(actions.setBrightness = {
-				name: 'Set Brightness',
-				options: [
-					{
-						type: 'number',
-						label: 'Brightness',
-						id: 'brightness',
-						default: 50,
-						min: 0,
-						max: 100,
-						required: true,
-					},
-				],
-				callback: async function (action) {
-					let opt = action.options
-
-					let options = {
-						brightness: opt.brightness,
-					}
-
-					self.setImaging(options)
-				},
-			})
+		}
 
 		actions.setColorSaturation = {
 			name: 'Set Color Saturation',

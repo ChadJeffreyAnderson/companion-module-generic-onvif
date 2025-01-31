@@ -159,8 +159,21 @@ module.exports = {
 			//save copy of current array to compare for changes
 			let tempChoices = self.CHOICES_PRESETS
 			self.CHOICES_PRESETS = []
+			let index = 0
 			for (let key in presets) {
-				self.CHOICES_PRESETS.push({ id: presets[key], label: key })
+				// If key is NaN, extract number from string and make it aN
+				if (isNaN(presets[key])) {
+					index = +presets[key].match(/\d+/g)
+				} else {
+					index = presets[key]
+				}
+				self.CHOICES_PRESETS.push(
+					{
+						id: presets[key],
+						index: index,
+						label: key,
+					}
+				)
 			}
 
 			// If no presets are found, add a default option
@@ -289,6 +302,23 @@ module.exports = {
 			self.DEVICE.setPreset(options, (err, status) => {
 				if (err) {
 					self.log('error', 'Error setting preset: ' + String(err))
+					return
+				}
+
+				console.log(status)
+
+				self.getPresets()
+			})
+		}
+	},
+
+	removePreset: function (options) {
+		let self = this
+
+		if (self.DEVICE) {
+			self.DEVICE.removePreset(options, (err, status) => {
+				if (err) {
+					self.log('error', 'Error removing preset: ' + String(err))
 					return
 				}
 
