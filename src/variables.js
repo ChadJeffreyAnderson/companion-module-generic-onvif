@@ -56,6 +56,7 @@ module.exports = {
 			variableValues.movestatus_zoom = self.DATA?.status?.moveStatus?.zoom || ''
 			variableValues.error_state = self.DATA?.status?.error || ''
 			variableValues.utc_time = self.DATA?.status?.utcTime || ''
+			variableValues.presets = ''
 
 			if (self.CHOICES_PRESETS.length > 0 && self.CHOICES_PRESETS[0].id !== 0) {
 				//only add presets if they exist
